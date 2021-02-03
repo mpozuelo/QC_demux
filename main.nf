@@ -212,8 +212,8 @@ if (!params.complete) {
     //Then get the subset of samples with seqtk
     """
     subset=(\$(echo \$((\$(echo -e `zcat ${reads[0]} | awk 'NR % 4 == 2' - | wc -l`)*10/100))))
-    seqtk sample -s100 ${reads[0]} $subset > $read1
-    seqtk sample -s100 ${reads[1]} $subset > $read2
+    seqtk sample -s100 ${reads[0]} \$subset > $read1
+    seqtk sample -s100 ${reads[1]} \$subset > $read2
     """
   }
 
