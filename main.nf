@@ -524,7 +524,7 @@ process rseqc {
      fastqc --quiet --threads $task.cpus $reads
      """
    }
- }
+
 
 
 
