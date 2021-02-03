@@ -453,7 +453,7 @@ process samtools {
 
   output:
   path("*.flagstat") into flagstat //multiqc
-  path("*.idxstats") into idxstats //multiqc
+  path("*.idxstats") into indxstats //multiqc
   path("*.stats") into bam_stats //multiqc
 
 
@@ -574,7 +574,7 @@ process rseqc {
    path('star/*') from star_logs.collect().ifEmpty([])
    path ('samtools/stats/*') from bam_stats.collect().ifEmpty([])
    path ('samtools/flagstat/*') from flagstat.collect().ifEmpty([])
-   path ('samtools/idxstats/*') from indxstat.collect().ifEmpty([])
+   path ('samtools/idxstats/*') from indxstats.collect().ifEmpty([])
    path ('rseqc/bam_stat/*') from rseqc_bam.collect().ifEmpty([])
    path ('rseqc/read_duplication/*') from rseqc_dup.collect().ifEmpty([])
 
