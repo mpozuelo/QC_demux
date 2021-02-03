@@ -1,11 +1,11 @@
 #!/usr/bin/env nextflow
 /*
 ========================================================================================
-                         mpozuelo/MGI_demux
+                         mpozuelo/QC_demux
 ========================================================================================
-mpozuelo/MGI_demux Analysis Pipeline.
+mpozuelo/QC_demux Analysis Pipeline.
  #### Homepage / Documentation
- https://github.com/mpozuelo/MGI_demux
+ https://github.com/mpozuelo/QC_demux
 ----------------------------------------------------------------------------------------
 */
 
@@ -17,7 +17,7 @@ def helpMessage() {
 
     The typical command for running the pipeline is as follows:
 
-    nextflow run mpozuelo/MGI_demux --input '*.txt' -profile docker
+    nextflow run mpozuelo/QC_demux --input '*.txt' -profile docker
 
     Mandatory arguments:
       --input [file]                Samplesheet samples information (only samples that want to show in the same MultiQC)
@@ -108,10 +108,10 @@ checkHostname()
 def create_workflow_summary(summary) {
     def yaml_file = workDir.resolve('workflow_summary_mqc.yaml')
     yaml_file.text  = """
-    id: 'mpozuelo-MGI_demux-summary'
+    id: 'mpozuelo-QC_demux-summary'
     description: " - this information is collected when the pipeline is started."
-    section_name: 'mpozuelo/MGI_demux Workflow Summary'
-    section_href: 'https://github.com/mpozuelo/MGI_demux'
+    section_name: 'mpozuelo/QC_demux Workflow Summary'
+    section_href: 'https://github.com/mpozuelo/QC_demux'
     plot_type: 'html'
     data: |
         <dl class=\"dl-horizontal\">
@@ -183,7 +183,7 @@ if (!params.complete) {
     //First count the number of total reads in one of the input files (R1 or R2, in this case R1) and get the 10%
     //Then get the subset of samples with seqtk
     """
-    subset=($(echo $(($(echo -e `zcat ${reads[0]} | awk 'NR % 4 == 2' - | wc -l`)*10/100))))
+    subset=(\$(echo \$((\$(echo -e `zcat ${reads[0]} | awk 'NR % 4 == 2' - | wc -l`)*10/100))))
     seqtk sample -s100 ${reads[0]} $subset > $read1
     seqtk sample -s100 ${reads[1]} $subset > $read2
     """
@@ -240,7 +240,7 @@ process trimming {
     cutadapt -u 40 -g "polyA_Tail=T{100}" --minimum-length 20 -a Nextera=CTGTCTCTTATACACATCT \
     -A "polyA_Tail=A{100}" -A "TruSeq=N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT;min_overlap=25" -n 2 --pair-filter=any \
     -o $trimmed1 -p $trimmed2 \
-    ${subset[0]} ${subset[1]} > "${sample}_${run_id}_${lane}_report.log"
+    ${subset[0]} ${subset[1]} > "${sample}_${run_id}_${lane}_report.txt"
 
     fastqc --quiet --threads $task.cpus $trimmed1 $trimmed2
     """
@@ -253,7 +253,7 @@ process trimming {
     cutadapt --minimum-length 20 -a "Nextera=CTGTCTCTTATACACATCT" -a "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \
     -A "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" -A "Nextera=CTGTCTCTTATACACATCT" -n 2 --pair-filter=any \
     -o $trimmed1 -p $trimmed2 \
-    ${subset[0]} ${subset[1]} > "${sample}_${run_id}_${lane}_report.log"
+    ${subset[0]} ${subset[1]} > "${sample}_${run_id}_${lane}_report.txt"
 
     fastqc --quiet --threads $task.cpus $trimmed1 $trimmed2
     """
@@ -600,10 +600,10 @@ process rseqc {
 workflow.onComplete {
 
     // Set up the e-mail variables
-    def subject = "[mpozuelo/MGI_demux] Successful: $workflow.runName"
+    def subject = "[mpozuelo/QC_demux] Successful: $workflow.runName"
 
     if (!workflow.success) {
-      subject = "[mpozuelo/MGI_demux] FAILED: $workflow.runName"
+      subject = "[mpozuelo/QC_demux] FAILED: $workflow.runName"
     }
 
 
@@ -621,10 +621,10 @@ workflow.onComplete {
     }
 
     if (workflow.success) {
-        log.info "${c_purple}[mpozuelo/MGI_demux]${c_green} Pipeline completed successfully${c_reset}"
+        log.info "${c_purple}[mpozuelo/QC_demux]${c_green} Pipeline completed successfully${c_reset}"
     } else {
         checkHostname()
-        log.info "${c_purple}[mpozuelo/MGI_demux]${c_red} Pipeline completed with errors${c_reset}"
+        log.info "${c_purple}[mpozuelo/QC_demux]${c_red} Pipeline completed with errors${c_reset}"
     }
 
 }
@@ -646,7 +646,7 @@ def mpozueloHeader() {
   ${c_blue}  __  __  __   __  ___         ${c_reset}
   ${c_blue}  | \\/ | |__| |  |  /  |  |     ${c_reset}
   ${c_blue}  |    | |    |__| /__ |__|         ${c_reset}
-  ${c_white}  mpozuelo/MGI_demux v${workflow.manifest.version}${c_reset}
+  ${c_white}  mpozuelo/QC_demux v${workflow.manifest.version}${c_reset}
   -${c_dim}--------------------------------------------------${c_reset}-
   """.stripIndent()
 }
