@@ -202,7 +202,7 @@ if (!params.complete) {
     set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(reads) from ch_subset
 
     output:
-    set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path("QC.fq.gz") into ch_trimming
+    set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path("*QC.fq.gz") into ch_trimming
 
     script:
     read1 = reads[0].minus(".fq.gz") + ".QC.fq.gz"
