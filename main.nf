@@ -89,7 +89,6 @@ if (workflow.revision) summary['Pipeline Release'] = workflow.revision
 summary['Run Name'] = custom_runName ?: workflow.runName
 summary['Project'] = params.project
 summary['Input'] = params.input
-summary['Demultiplexing max error rate'] = max_errors
 summary['Max Resources'] = "$params.max_memory memory, $params.max_cpus cpus, $params.max_time time per job"
 if (workflow.containerEngine) summary['Container'] = "$workflow.containerEngine - $workflow.container"
 summary['User'] = workflow.userName
