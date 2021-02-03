@@ -407,7 +407,7 @@ process star {
 
 
   }
-}
+
 
 
 process samtools {
