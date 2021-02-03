@@ -123,6 +123,35 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
 
 
 
+
+ /*
+  * Parse software version numbers
+  */
+ process get_software_versions {
+     publishDir "${params.outdir}/pipeline_info", mode: 'copy',
+         saveAs: { filename ->
+             if (filename.indexOf(".csv") > 0) filename
+             else null
+         }
+
+     output:
+     file 'software_versions_mqc.yaml' into software_versions_yaml
+     file "software_versions.csv"
+
+     script:
+     """
+     echo $workflow.manifest.version &> v_ngi_QC.txt
+     echo $workflow.nextflow.version &> v_nextflow.txt
+     fastqc --version &> v_fastqc.txt
+     cutadapt --version &> v_cutadapt.txt
+     STAR --version &> v_star.txt
+     samtools --version &> v_samtools.txt
+     multiqc --version &> v_multiqc.txt
+     scrape_software_versions.py &> software_versions_mqc.yaml
+     """
+ }
+
+
 /*
  * LOAD SAMPLESHEET and assign get the columns we will use for demultiplexing
 
@@ -561,33 +590,6 @@ process rseqc {
    multiqc . -f $rtitle $rfilename --config $multiqc_config
    """
 
- }
-
-
-
-
-// Generate the fastq files for the samples
-
- /*
-  * Parse software version numbers
-  */
- process get_software_versions {
-     publishDir "${params.outdir}/pipeline_info", mode: 'copy',
-         saveAs: { filename ->
-             if (filename.indexOf(".csv") > 0) filename
-             else null
-         }
-
-     output:
-     file 'software_versions_mqc.yaml' into software_versions_yaml
-     file "software_versions.csv"
-
-     script:
-     """
-     fastqc --version &> v_fastqc.txt
-     cutadapt --version &> v_cutadapt.txt
-     scrape_software_versions.py &> software_versions_mqc.yaml
-     """
  }
 
 
