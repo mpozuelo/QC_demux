@@ -352,7 +352,7 @@ process star {
   set val(sample), path(trimmed), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user) from ch_star
 
   output:
-  set val(sample), path("*.sortedByCoord.out.bam"), path("*Aligned.sortedByCoord.out.bam.bai") into ch_bam_samtools,
+  set val(sample), path("*.sortedByCoord.out.bam"), path("*Aligned.sortedByCoord.out.bam.bai") into ch_bam_samtools
 
   set val(sample), path("*.sortedByCoord.out.bam") into ch_bam_stats
   //set val(sample), path("*Aligned.sortedByCoord.out.bam.bai") into bam_index
