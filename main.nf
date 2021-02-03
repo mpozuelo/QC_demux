@@ -513,7 +513,7 @@ process rseqc {
      }
 
      input:
-     set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(reads) into ch_fastqc_original
+     set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(reads) from ch_fastqc_original
 
      output:
      path("*_fastqc.{zip,html}") into fastqc_results //multiqc
