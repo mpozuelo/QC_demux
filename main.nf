@@ -153,7 +153,8 @@ Channel
   .map { it = ["${it[0]}", "${it[4]}", "${it[5]}", "${it[6]}", "${it[7]}", "${it[8]}", "${it[9]}", "${it[10]}", "${it[11]}",
   [file("${cluster_path}/data/04_pfastq/${it[8]}/${it[4]}/${it[5]}/${it[11]}/demux_fastq/${it[0]}_${it[4]}_${it[5]}_R1.fq.gz", checkIfExists: true),
   file("${cluster_path}/data/04_pfastq/${it[8]}/${it[4]}/${it[5]}/${it[11]}/demux_fastq/${it[0]}_${it[4]}_${it[5]}_R2.fq.gz", checkIfExists: true)]]}
-  .into { ch_subset }
+  .set { ch_subset,
+         ch_fastqc_original }
 
 
 /*
@@ -173,8 +174,7 @@ if (!params.complete) {
     set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(reads) from ch_subset
 
     output:
-    set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path("QC.fq.gz") into ch_trimming,
-                                                                                                                                                 ch_fastqc
+    set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path("QC.fq.gz") into ch_trimming
 
     script:
     read1 = reads[0].minus(".fq.gz") + ".QC.fq.gz"
@@ -191,8 +191,7 @@ if (!params.complete) {
 
 } else {
   ch_subset
-    .into { ch_trimming
-            ch_fastqc }
+    .into { ch_trimming }
 }
 
 
@@ -221,7 +220,8 @@ process trimming {
 
   output:
   set val(sample), path("*cutadapt.fq.gz"), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user) into ch_star
-  set path("*.log"), path("*_fastqc.{zip,html}") into trimmed_multiqc //multiqc
+  path("*_fastqc.{zip,html}") into fastqc_trimmed_multiqc //multiqc
+  path("*report.txt") into trimmed_multiqc
 
   script:
   trimmed1 = subset[0].minus(".fq.gz") + ".cutadapt.fq.gz"
@@ -240,7 +240,7 @@ process trimming {
     cutadapt -u 40 -g "polyA_Tail=T{100}" --minimum-length 20 -a Nextera=CTGTCTCTTATACACATCT \
     -A "polyA_Tail=A{100}" -A "TruSeq=N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT;min_overlap=25" -n 2 --pair-filter=any \
     -o $trimmed1 -p $trimmed2 \
-    ${subset[0]} ${subset[1]}
+    ${subset[0]} ${subset[1]} > "${sample}_${run_id}_${lane}_report.log"
 
     fastqc --quiet --threads $task.cpus $trimmed1 $trimmed2
     """
@@ -253,7 +253,7 @@ process trimming {
     cutadapt --minimum-length 20 -a "Nextera=CTGTCTCTTATACACATCT" -a "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \
     -A "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" -A "Nextera=CTGTCTCTTATACACATCT" -n 2 --pair-filter=any \
     -o $trimmed1 -p $trimmed2 \
-    ${subset[0]} ${subset[1]}
+    ${subset[0]} ${subset[1]} > "${sample}_${run_id}_${lane}_report.log"
 
     fastqc --quiet --threads $task.cpus $trimmed1 $trimmed2
     """
@@ -380,7 +380,7 @@ process star {
 
   //First make the alingment for each read separated to obtain later the metrics per file
   """
-  STAR --runThreadN 4 \
+  STAR --runThreadN 10 \
   --genomeDir $starrefgenome \
   --readFilesIn $trimmed \
   --readFilesCommand zcat \
@@ -394,11 +394,11 @@ process star {
 
   if [ -f ${prefix}.Unmapped.out.mate1 ]; then
     mv ${prefix}.Unmapped.out.mate1 ${prefix}.unmapped_R1.fq
-    gzip ${prefix}.unmapped_R1.fq
+    bgzip ${prefix}.unmapped_R1.fq
   fi
   if [ -f ${prefix}.Unmapped.out.mate2 ]; then
     mv ${prefix}.Unmapped.out.mate2 ${prefix}.unmapped_R2.fq
-    gzip ${prefix}.unmapped_R2.fq
+    bgzip ${prefix}.unmapped_R2.fq
   fi
 
   samtools index ${prefix}Aligned.sortedByCoord.out.bam
@@ -470,9 +470,9 @@ process rseqc {
 
 
 /*
- * STEP 4 - FastQC
+ * STEP 4 - FastQC subset or complete in case we do not perform any subset
  */
- if (!params.skipQC || !params.skipFastQC) {
+ /*if (!params.skipQC || !params.skipFastQC) {
 
    process fastqc {
      tag "$sample"
@@ -482,8 +482,11 @@ process rseqc {
        filename.endsWith(".zip") ? "zips/$filename" : filename
      }
 
+     when:
+     !params.complete
+
      input:
-     set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(reads) into ch_fastqc
+     set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(reads) into ch_fastqc_subset
 
      output:
      path("*_fastqc.{zip,html}") into fastqc_results //multiqc
@@ -496,6 +499,33 @@ process rseqc {
  } else {
    fastqc_results = Channel.empty()
  }
+
+
+  /*
+   * STEP 5 - FastQC of the whole sample
+   */
+
+  process fastqc {
+     tag "$sample"
+     label 'process_medium'
+     publishDir "${cluster_path}/data/05_QC/${project}/FastQC/${sample}", mode: 'copy',
+     saveAs: { filename ->
+       filename.endsWith(".zip") ? "zips/$filename" : filename
+     }
+
+     input:
+     set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(reads) into ch_fastqc_original
+
+     output:
+     path("*_fastqc.{zip,html}") into fastqc_results //multiqc
+
+     script:
+     """
+     fastqc --quiet --threads $task.cpus $reads
+     """
+   }
+ }
+
 
 
  process multiqc {
@@ -511,7 +541,8 @@ process rseqc {
    path ('software_versions/*') from software_versions_yaml.collect()
    path workflow_summary from create_workflow_summary(summary)
    path('fastqc/*') from fastqc_results.collect().ifEmpty([])
-   path('fastqc_trimming/*') from fastqc_trimming.collect().ifEmpty([])
+   path('cutadapt/*') from trimmed_multiqc.collect().ifEmpty([])
+   path('cutadapt/fastqc/*') from fastqc_trimmed_multiqc.collect().ifEmpty([])
    path('star/*') from star_logs.collect().ifEmpty([])
    path ('samtools/stats/*') from bam_stats.collect().ifEmpty([])
    path ('samtools/flagstat/*') from flagstat.collect().ifEmpty([])
