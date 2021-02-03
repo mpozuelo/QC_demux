@@ -153,8 +153,8 @@ Channel
   .map { it = ["${it[0]}", "${it[4]}", "${it[5]}", "${it[6]}", "${it[7]}", "${it[8]}", "${it[9]}", "${it[10]}", "${it[11]}",
   [file("${cluster_path}/data/04_pfastq/${it[8]}/${it[4]}/${it[5]}/${it[11]}/demux_fastq/${it[0]}_${it[4]}_${it[5]}_R1.fq.gz", checkIfExists: true),
   file("${cluster_path}/data/04_pfastq/${it[8]}/${it[4]}/${it[5]}/${it[11]}/demux_fastq/${it[0]}_${it[4]}_${it[5]}_R2.fq.gz", checkIfExists: true)]]}
-  .set { ch_subset,
-        ch_fastqc_original }
+  .into { ch_subset,
+          ch_fastqc_original }
 
 
 /*
