@@ -205,8 +205,8 @@ if (!params.complete) {
     set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path("*QC.fq.gz") into ch_trimming
 
     script:
-    read1 = reads[0].minus(".fq.gz") + ".QC.fq.gz"
-    read2 = reads[1].minus(".fq.gz") + ".QC.fq.gz"
+    read1 = reads[0].take(reads[0].lastIndexOf(".")) + ".QC.fq.gz"
+    read2 = reads[1].take(reads[1].lastIndexOf(".")) + ".QC.fq.gz"
 
     //First count the number of total reads in one of the input files (R1 or R2, in this case R1) and get the 10%
     //Then get the subset of samples with seqtk
@@ -252,8 +252,8 @@ process trimming {
   path("*report.txt") into trimmed_multiqc
 
   script:
-  trimmed1 = subset[0].minus(".fq.gz") + ".cutadapt.fq.gz"
-  trimmed2 = subset[1].minus(".fq.gz") + ".cutadapt.fq.gz"
+  trimmed1 = subset[0].take(subset[0].lastIndexOf(".")) + ".cutadapt.fq.gz"
+  trimmed2 = subset[1].take(subset[1].lastIndexOf(".")) + ".cutadapt.fq.gz"
   umi = "${sample}_${run_id}_${lane}_UMI.fq.gz"
 
   if (protocol == 'RNAseq_3_S' | protocol == 'RNAseq_3_ULI') {
