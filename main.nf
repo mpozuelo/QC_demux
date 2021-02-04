@@ -205,17 +205,17 @@ if (!params.complete) {
     set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path("*QC.fq.gz") into ch_trimming
 
     script:
-    read1 = reads[0].baseName + ".QC.fq"
-    read2 = reads[1].baseName + ".QC.fq"
+    read1 = "${sample}_${run_id}_${lane}_R1.QC.fq"
+    read2 = "${sample}_${run_id}_${lane}_R2.QC.fq"
 
     //First count the number of total reads in one of the input files (R1 or R2, in this case R1) and get the 10%
     //Then get the subset of samples with seqtk
     """
     subset=(\$(echo \$((\$(echo -e `zcat ${reads[0]} | awk 'NR % 4 == 2' - | wc -l`)*10/100))))
-    seqtk sample -s100 ${reads[0]} \$subset > $read1 &
+    seqtk sample -s100 ${reads[0]} \$subset > $read1
     seqtk sample -s100 ${reads[1]} \$subset > $read2
-    bgzip $read1 &
-    bgzip $read2
+    pigz $read1
+    pigz $read2
     """
   }
 
@@ -254,8 +254,8 @@ process trimming {
   path("*report.txt") into trimmed_multiqc
 
   script:
-  trimmed1 = subset[0].baseName + ".cutadapt.fq.gz"
-  trimmed2 = subset[1].baseName + ".cutadapt.fq.gz"
+  trimmed1 = "${sample}_${run_id}_${lane}_R1.QC.cutadapt.fq.gz"
+  trimmed2 = "${sample}_${run_id}_${lane}_R2.QC.cutadapt.fq.gz"
   umi = "${sample}_${run_id}_${lane}_UMI.fq.gz"
 
   if (protocol == 'RNAseq_3_S' | protocol == 'RNAseq_3_ULI') {
