@@ -265,11 +265,11 @@ process trimming {
     //  # Remove polyA tail in read2 (upper case options) and truseq adaptor (both in 3'), 18N accounts for 8nt BC+10nt UMI (in the truseq adapter)
 
     """
-    cutadapt -l 10 -o $umi ${subset[0]}
+    cutadapt -l 10 -j 0 -o $umi ${subset[0]}
 
     cutadapt -u 40 -g "polyA_Tail=T{100}" --minimum-length 20 -a Nextera=CTGTCTCTTATACACATCT \
     -A "polyA_Tail=A{100}" -A "TruSeq=N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT;min_overlap=25" -n 2 --pair-filter=any \
-    -o $trimmed1 -p $trimmed2 \
+    -o $trimmed1 -p $trimmed2 -j 0 \
     ${subset[0]} ${subset[1]} > "${sample}_${run_id}_${lane}_report.txt"
 
     fastqc --quiet --threads $task.cpus $trimmed1 $trimmed2
@@ -282,7 +282,7 @@ process trimming {
     """
     cutadapt --minimum-length 20 -a "Nextera=CTGTCTCTTATACACATCT" -a "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \
     -A "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" -A "Nextera=CTGTCTCTTATACACATCT" -n 2 --pair-filter=any \
-    -o $trimmed1 -p $trimmed2 \
+    -o $trimmed1 -p $trimmed2 -j 0 \
     ${subset[0]} ${subset[1]} > "${sample}_${run_id}_${lane}_report.txt"
 
     fastqc --quiet --threads $task.cpus $trimmed1 $trimmed2
