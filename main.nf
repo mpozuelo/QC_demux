@@ -395,11 +395,14 @@ process star {
 
   script:
   if (genome == "mm10") {
-    starrefgenome = "${cluster_path}/scripts/genomic_reference_data/STAR/STARgenomes/GENCODE/GRCm38_GencodeM21"
+    gtf = file("${params.igenomes_base}/Mus_musculus/UCSC/mm10/Annotation/Genes/genes.gtf", checkIfExists: true)
+    index = file("${params.igenomes_base}/Mus_musculus/UCSC/mm10/Sequence/STARIndex/", checkIfExists: true)
     //picardref = "${cluster_path}/scripts/genomic_reference_data/bowtieIndexes/mm10_Bowtie2/mm10.fa"
     //picardrefflat = "${cluster_path}/scripts/genomic_reference_data/mm10/refFlat.txt"
-  } else if (genome == "hg19") {
-    starrefgenome = "${cluster_path}/scripts/genomic_reference_data/STAR/STARgenomes/GENCODE/hg19.v19"
+  } else if (genome == "hg38") {
+    gtf = file("${params.igenomes_base}/Homo_sapiens/NCBI/GRCh38/Annotation/Genes/genes.gtf", checkIfExists: true)
+    index = file("${params.igenomes_base}/Homo_sapiens/NCBI/GRCh38/Sequence/STARIndex/", checkIfExists: true)
+
     //picardref = "${cluster_path}/scripts/genomic_reference_data/bowtieIndexes/hg19_Bowtie2/hg19_no_r.fa"
     //picardrefflat = "${cluster_path}/scripts/genomic_reference_data/hg19/refFlat.txt"
   }
@@ -410,17 +413,19 @@ process star {
 
   //First make the alingment for each read separated to obtain later the metrics per file
   """
-  STAR --runThreadN 10 \
-  --genomeDir $starrefgenome \
+  STAR
+  --sjdbGTFfile $gtf \
+  --runThreadN ${task.cpus} \
+  --genomeDir $index \
   --readFilesIn $trimmed \
   --readFilesCommand zcat \
+  --outWigType bedGraph \
   --outFileNamePrefix $prefix \
-  --outSAMtype BAM SortedByCoordinate \
-  --outSAMunmapped Within \
-  --limitBAMsortRAM 20000000000 \
+  --outSAMtype BAM SortedByCoordinate $avail_mem \
   --outSAMattributes NH HI AS NM MD \
   --outSAMattrRGline ID:${sample}.R1.${protocol} SM:${sample} LB:${protocol} PL:${platform} CN:${source} DT:${date}T00:00:00-0400 \
   $unaligned
+
 
   if [ -f ${prefix}.Unmapped.out.mate1 ]; then
     mv ${prefix}.Unmapped.out.mate1 ${prefix}.unmapped_R1.fq
