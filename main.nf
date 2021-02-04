@@ -205,15 +205,17 @@ if (!params.complete) {
     set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path("*QC.fq.gz") into ch_trimming
 
     script:
-    read1 = reads[0].baseName + ".QC.fq.gz"
-    read2 = reads[1].baseName + ".QC.fq.gz"
+    read1 = reads[0].baseName + ".QC.fq"
+    read2 = reads[1].baseName + ".QC.fq"
 
     //First count the number of total reads in one of the input files (R1 or R2, in this case R1) and get the 10%
     //Then get the subset of samples with seqtk
     """
     subset=(\$(echo \$((\$(echo -e `zcat ${reads[0]} | awk 'NR % 4 == 2' - | wc -l`)*10/100))))
-    seqtk sample -s100 ${reads[0]} \$subset > $read1
+    seqtk sample -s100 ${reads[0]} \$subset > $read1 &
     seqtk sample -s100 ${reads[1]} \$subset > $read2
+    bgzip $read1 &
+    bgzip $read2
     """
   }
 
