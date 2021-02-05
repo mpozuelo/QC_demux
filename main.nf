@@ -397,12 +397,12 @@ process star {
   script:
   if (genome == "mm38") {
     gtf = file("${cluster_path}/References/iGenomes/Mus_musculus/Ensembl/GRCm38/Annotation/Genes/genes.gtf", checkIfExists: true)
-    index = file("${params.igenomes_base}/References/iGenomes/Mus_musculus/Ensembl/GRCm38/Sequence/STARIndex/", checkIfExists: true)
+    index = file("${cluster_path}/References/iGenomes/Mus_musculus/Ensembl/GRCm38/Sequence/STARIndex/", checkIfExists: true)
     //picardref = "${cluster_path}/scripts/genomic_reference_data/bowtieIndexes/mm10_Bowtie2/mm10.fa"
     //picardrefflat = "${cluster_path}/scripts/genomic_reference_data/mm10/refFlat.txt"
   } else if (genome == "hg38") {
-    gtf = file("${params.igenomes_base}/References/iGenomes/Homo_sapiens/NCBI/GRCh38/Annotation/Genes/genes.gtf", checkIfExists: true)
-    index = file("${params.igenomes_base}/References/iGenomes/Homo_sapiens/NCBI/GRCh38/Sequence/STARIndex/", checkIfExists: true)
+    gtf = file("${cluster_path}/References/iGenomes/Homo_sapiens/NCBI/GRCh38/Annotation/Genes/genes.gtf", checkIfExists: true)
+    index = file("${cluster_path}/References/iGenomes/Homo_sapiens/NCBI/GRCh38/Sequence/STARIndex/", checkIfExists: true)
 
     //picardref = "${cluster_path}/scripts/genomic_reference_data/bowtieIndexes/hg19_Bowtie2/hg19_no_r.fa"
     //picardrefflat = "${cluster_path}/scripts/genomic_reference_data/hg19/refFlat.txt"
@@ -430,11 +430,11 @@ process star {
 
   if [ -f ${prefix}.Unmapped.out.mate1 ]; then
     mv ${prefix}.Unmapped.out.mate1 ${prefix}.unmapped_R1.fq
-    bgzip ${prefix}.unmapped_R1.fq
+    pigz -p $task.cpus ${prefix}.unmapped_R1.fq
   fi
   if [ -f ${prefix}.Unmapped.out.mate2 ]; then
     mv ${prefix}.Unmapped.out.mate2 ${prefix}.unmapped_R2.fq
-    bgzip ${prefix}.unmapped_R2.fq
+    pigz -p $task.cpus ${prefix}.unmapped_R2.fq
   fi
 
   samtools index ${prefix}Aligned.sortedByCoord.out.bam
