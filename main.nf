@@ -185,6 +185,7 @@ Channel
           ch_fastqc_original }
 
 
+
 /*
  * STEP 1 - Make subset
  */
@@ -214,8 +215,8 @@ if (!params.complete) {
     subset=(\$(echo \$((\$(echo -e `zcat ${reads[0]} | awk 'NR % 4 == 2' - | wc -l`)*10/100))))
     seqtk sample -s100 ${reads[0]} \$subset > $read1
     seqtk sample -s100 ${reads[1]} \$subset > $read2
-    pigz $read1
-    pigz $read2
+    pigz -f -d -p $task.cpus $read1
+    pigz -f -d -p $task.cpus $read2
     """
   }
 
@@ -394,14 +395,14 @@ process star {
 
 
   script:
-  if (genome == "mm10") {
-    gtf = file("${params.igenomes_base}/Mus_musculus/UCSC/mm10/Annotation/Genes/genes.gtf", checkIfExists: true)
-    index = file("${params.igenomes_base}/Mus_musculus/UCSC/mm10/Sequence/STARIndex/", checkIfExists: true)
+  if (genome == "mm38") {
+    gtf = file("${cluster_path}/References/iGenomes/Mus_musculus/Ensembl/GRCm38/Annotation/Genes/genes.gtf", checkIfExists: true)
+    index = file("${params.igenomes_base}/References/iGenomes/Mus_musculus/Ensembl/GRCm38/Sequence/STARIndex/", checkIfExists: true)
     //picardref = "${cluster_path}/scripts/genomic_reference_data/bowtieIndexes/mm10_Bowtie2/mm10.fa"
     //picardrefflat = "${cluster_path}/scripts/genomic_reference_data/mm10/refFlat.txt"
   } else if (genome == "hg38") {
-    gtf = file("${params.igenomes_base}/Homo_sapiens/NCBI/GRCh38/Annotation/Genes/genes.gtf", checkIfExists: true)
-    index = file("${params.igenomes_base}/Homo_sapiens/NCBI/GRCh38/Sequence/STARIndex/", checkIfExists: true)
+    gtf = file("${params.igenomes_base}/References/iGenomes/Homo_sapiens/NCBI/GRCh38/Annotation/Genes/genes.gtf", checkIfExists: true)
+    index = file("${params.igenomes_base}/References/iGenomes/Homo_sapiens/NCBI/GRCh38/Sequence/STARIndex/", checkIfExists: true)
 
     //picardref = "${cluster_path}/scripts/genomic_reference_data/bowtieIndexes/hg19_Bowtie2/hg19_no_r.fa"
     //picardrefflat = "${cluster_path}/scripts/genomic_reference_data/hg19/refFlat.txt"
