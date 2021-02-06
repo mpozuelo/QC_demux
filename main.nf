@@ -411,6 +411,7 @@ process star {
   prefix = params.complete ? "${sample}_${run_id}.STAR.${genome}." : "${sample}_${run_id}.STAR.${genome}.QC."
   unaligned = params.complete ? "--outReadsUnmapped Fastx" : ''
 
+  def avail_mem = star_mem ? "--limitBAMsortRAM ${star_mem.toBytes() - 100000000}" : ''
 
   //First make the alingment for each read separated to obtain later the metrics per file
   """
