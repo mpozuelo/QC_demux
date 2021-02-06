@@ -416,7 +416,7 @@ process star {
 
   //First make the alingment for each read separated to obtain later the metrics per file
   """
-  STAR
+  STAR \
   --sjdbGTFfile $gtf \
   --runThreadN ${task.cpus} \
   --genomeDir $index \
