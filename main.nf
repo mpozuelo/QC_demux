@@ -238,7 +238,7 @@ if (!params.complete) {
 
 process trimming {
   tag "$sample"
-  label 'process_high'
+  label 'process_medium'
   publishDir "${cluster_path}/data/05_QC/${project}/Trimming/${sample}", mode: 'copy',
   saveAs: { filename ->
     if (filename.endsWith(".log")) "logs/$filename"
