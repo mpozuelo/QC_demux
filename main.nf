@@ -545,7 +545,7 @@ process rseqc {
 
   process fastqc {
      tag "$sample"
-     label 'process_medium'
+     label 'process_low'
      publishDir "${cluster_path}/data/05_QC/${project}/FastQC/${sample}", mode: 'copy',
      saveAs: { filename ->
        filename.endsWith(".zip") ? "zips/$filename" : filename
