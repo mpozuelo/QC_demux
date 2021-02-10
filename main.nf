@@ -79,6 +79,7 @@ project = params.project
 
 // Stage multiqc config files
 ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
+ch_image_docs            = file("$baseDir/assets/figures/Logo_IdisNA_CIMA.png", checkIfExists: true)
 
 
 
@@ -576,6 +577,7 @@ process rseqc {
    input:
    path multiqc_config from ch_multiqc_config
    //path multiqc_custom_config
+   path "*" from ch_image_docs
    path ('software_versions/*') from software_versions_yaml.collect()
    path workflow_summary from create_workflow_summary(summary)
    path('fastqc/*') from fastqc_results.collect().ifEmpty([])
