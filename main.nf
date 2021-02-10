@@ -593,7 +593,7 @@ process rseqc {
    output:
    path "*multiqc_report.html"
    path "*_data"
-   path "multiqc_plots"
+   //path "multiqc_plots"
 
    script:
    rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
