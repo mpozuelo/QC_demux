@@ -577,7 +577,6 @@ process rseqc {
    input:
    path multiqc_config from ch_multiqc_config
    //path multiqc_custom_config
-   path "*" from ch_image_docs
    path ('software_versions/*') from software_versions_yaml.collect()
    path workflow_summary from create_workflow_summary(summary)
    path('fastqc/*') from fastqc_results.collect().ifEmpty([])
@@ -589,11 +588,12 @@ process rseqc {
    path ('samtools/idxstats/*') from indxstats.collect().ifEmpty([])
    path ('rseqc/bam_stat/*') from rseqc_bam.collect().ifEmpty([])
    path ('rseqc/read_duplication/*') from rseqc_dup.collect().ifEmpty([])
+   path "*" from ch_image_docs
 
    output:
    path "*multiqc_report.html"
    path "*_data"
-   path "*_plots"
+   path "multiqc_plots"
 
    script:
    rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
