@@ -519,7 +519,7 @@ process star {
 process samtools {
   tag "$sample"
   label 'process_medium'
-  publishDir "${cluster_path}/data/05_QC/${project}/samtools/${sample}", mode: 'copy',
+  publishDir "${cluster_path}/data/05_QC/${project}/samtools/${sample}", mode: 'copy'
   /*saveAs: {filename ->
               if (filename.indexOf("flagstat") > 0) "flagstat/$filename"
          else if (filename.indexOf("idxstats") > 0) "idxstats/$filename"
