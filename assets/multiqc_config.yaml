@@ -55,7 +55,8 @@ sp:
 
     picard/markdups:
         fn: '*.MarkDuplicates.metrics.txt'
-    
+    picard/quality_score_distribution:
+        fn: '*.sort.qual_score_dist.txt'
 
 
 

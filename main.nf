@@ -691,7 +691,7 @@ process picard {
     """
     printf "%s\t%s\t%s\t%s" "sampleID" "TotalReads" "Q30%1" "Q30%2" "UniquelyMapped%" "MultipleMapped%" "TooManyMapped%" > "${project}.QC.table.tsv
     cat "*.total.reads.tsv" >> total.reads.tsv
-    sort total.reads.tsv > total.reads.sort.tsv 
+    sort total.reads.tsv > total.reads.sort.tsv
     cat "*.mapped.tsv" >> mapped.tsv
     sort mapped.tsv > mapped.sort.tsv
     join -t "\t" -j 1 total.reads.sort.tsv mapped.sort.tsv > QC.table.tsv
@@ -717,7 +717,8 @@ process picard {
    path('trimgalore/fastqc/*') from trimgalore_fastqc_mqc.collect().ifEmpty([])
    path('star/*') from star_logs.collect().ifEmpty([])
    path('samtools/stats/*') from bam_stats.collect().ifEmpty([])
-   path('picard/*') from picard_results.collect().ifEmpty([])
+   path('picard_mrkd/*') from picard_mrkd_results.collect().ifEmpty([])
+   path('picard_dist_score/*') from picard_distribution_results.collect().ifEmpty([])
    //path ('samtools/flagstat/*') from flagstat.collect().ifEmpty([])
    //path ('samtools/idxstats/*') from indxstats.collect().ifEmpty([])
    path ('rseqc/bam_stat/*') from rseqc_bam.collect().ifEmpty([])
