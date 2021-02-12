@@ -174,16 +174,59 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
  13- Coverage
  */
 
+ process modify_samplesheet {
+    publishDir "${params.outdir}/samplesheet/", mode: params.publish_dir_mode
+
+    input:
+    path samplesheet from ch_input
+
+    output:
+    path "samplesheet_validated.csv" into ch_samplesheet
+
+    script:
+    out = "samplesheet_validated.csv"
+
+    """
+    modify_samplesheet.py $samplesheet $out
+    """
+  }
 
 
-Channel
-  .from( ch_input )
-  .splitCsv(header:false, sep:',')
-  .map { it = ["${it[0]}", "${it[4]}", "${it[5]}", "${it[6]}", "${it[7]}", "${it[8]}", "${it[9]}", "${it[10]}", "${it[11]}",
-  [file("${cluster_path}/data/04_pfastq/${it[8]}/${it[4]}/${it[5]}/${it[11]}/demux_fastq/${it[0]}_${it[4]}_${it[5]}_R1.fq.gz", checkIfExists: true),
-  file("${cluster_path}/data/04_pfastq/${it[8]}/${it[4]}/${it[5]}/${it[11]}/demux_fastq/${it[0]}_${it[4]}_${it[5]}_R2.fq.gz", checkIfExists: true)]]}
+
+  def validate_input(LinkedHashMap sample) {
+
+    def sample_id = sample.sampleID
+    def index = sample.index
+    def index2 = sample.index2
+    def barcode = sample.barcode
+    def run = sample.run
+    def lane = sample.lane
+    def date = sample.date
+    def protocol = sample.protocol
+    def platform = sample.platform
+    def source = sample.source
+    def genome = sample.genome
+    def user = sample.user
+    def star_gtf = sample.star_gtf
+    def star_index = sample.star_index
+    def fastq1 = sample.fastq1
+    def fastq2 = sample.fastq2
+
+    def array = []
+    array = [ sample_id, [file(fastq1, checkIfExists: true), file(fastq2, checkIfExists: true)], run, lane, date, protocol, platform, source, genome,
+      user, [file(star_gtf, checkIfExists: true), file(star_index, checkIfExists: true)] ]
+
+    return array
+  }
+
+  /*
+  * Create channels for input fastq files
+  */
+  ch_samplesheet
+  .splitCsv(header:true, sep:',')
+  .map { validate_input(it) }
   .into { ch_subset
-          ch_fastqc_original }
+          ch_fastq }
 
 
 
@@ -201,14 +244,14 @@ if (!params.complete) {
     }
 
     input:
-    set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(reads) from ch_subset
+    set val(sample), path(reads), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(star) from ch_subset
 
     output:
-    set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path("*QC.fq.gz") into ch_trimming
+    set val(sample), path("*QC*.fq.gz"), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(star) into ch_trimming
 
     script:
-    read1 = "${sample}_${run_id}_${lane}_R1.QC.fq"
-    read2 = "${sample}_${run_id}_${lane}_R2.QC.fq"
+    read1 = "${sample}_${run_id}_${lane}_QC_R1.fq"
+    read2 = "${sample}_${run_id}_${lane}_QC_R2.fq"
 
     //First count the number of total reads in one of the input files (R1 or R2, in this case R1) and get the 10%
     //Then get the subset of samples with seqtk
@@ -240,25 +283,32 @@ if (!params.complete) {
 process trimming {
   tag "$sample"
   label 'process_medium'
-  publishDir "${cluster_path}/data/05_QC/${project}/Trimming/${sample}", mode: 'copy',
+  publishDir "${cluster_path}/data/05_QC/${project}/trimgalore/${sample}", mode: 'copy',
   saveAs: { filename ->
-    if (filename.endsWith(".log")) "logs/$filename"
-    else if (filename.endsWith("_fastqc.html")) "FastQC/$filename"
-    else if (filename.endsWith("_fastqc.zip")) "FastQC/zips/$filename"
+    if (filename.endsWith(".log") || filename.indexOf("trimming_report.txt") > 0) "logs/$filename"
+    else if (filename.endsWith("_fastqc.html")) "fastqc/$filename"
+    else if (filename.endsWith(".zip")) "fastqc/zips/$filename"
+    else if (filename.indexOf("_fastqc") > 0) filename
+    else if (filename.endsWith("UMI.fq.gz")) "UMIs/$filename"
+    else null
   }
 
+
   input:
-  set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(subset) from ch_trimming
+  set val(sample), path(subset), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(star) from ch_trimming
 
   output:
-  set val(sample), path("*cutadapt.fq.gz"), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user) into ch_star
-  path("*_fastqc.{zip,html}") into fastqc_trimmed_multiqc //multiqc
-  path("*report.txt") into trimmed_multiqc
+  set val(sample), path("*R*.fq.gz"), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(star) into ch_star
+  file "*trimming_report.txt" into trimgalore_trim_mqc
+  file "*_fastqc.{zip,html}" into trimgalore_fastqc_mqc
+  file "*UMI_fq.gz"
 
   script:
-  trimmed1 = "${sample}_${run_id}_${lane}_R1.QC.cutadapt.fq.gz"
-  trimmed2 = "${sample}_${run_id}_${lane}_R2.QC.cutadapt.fq.gz"
+  //trimmed1 = "${sample}_${run_id}_${lane}_QC_R1.cutadapt.fq.gz"
+  //trimmed2 = "${sample}_${run_id}_${lane}_QC_R2.cutadapt.fq.gz"
   umi = "${sample}_${run_id}_${lane}_UMI.fq.gz"
+  woumi1 = "${sample}_${run_id}_${lane}_woUMI_R1.fq.gz"
+  woumi2 = "${sample}_${run_id}_${lane}_woUMI_R2.fq.gz"
 
   if (protocol == 'RNAseq_3_S' | protocol == 'RNAseq_3_ULI') {
 
@@ -266,28 +316,51 @@ process trimming {
     //  # Remove polyT tail from 5' end and nextera adaptor from 3' end in read1 (lower case options)
     //  # Remove polyA tail in read2 (upper case options) and truseq adaptor (both in 3'), 18N accounts for 8nt BC+10nt UMI (in the truseq adapter)
 
-    """
-    cutadapt -l 10 -j 0 -o $umi ${subset[0]}
 
-    cutadapt -u 40 -g "polyA_Tail=T{100}" --minimum-length 20 -a Nextera=CTGTCTCTTATACACATCT \
+    /*cutadapt -q 30 -u 40 -g "polyA_Tail=T{100}" --minimum-length 20 -a Nextera=CTGTCTCTTATACACATCT \
     -A "polyA_Tail=A{100}" -A "TruSeq=N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT;min_overlap=25" -n 2 --pair-filter=any \
     -o $trimmed1 -p $trimmed2 -j 0 \
     ${subset[0]} ${subset[1]} > "${sample}_${run_id}_${lane}_report.txt"
 
     fastqc --quiet --threads $task.cpus $trimmed1 $trimmed2
+    */
     """
+    cutadapt -l 10 -j 0 -o $umi ${subset[0]}
+
+    umi_tools extract -I ${subset[0]} -S $woumi1 --read2-in=${subset[1]} --read2-out=$woumi2 --bc-pattern=^NNNNNNNNNN
+
+    trim-galore \\
+    -q 30 \\
+    --paired \\
+    -a "polyA_Tail=T{100}" -a "Nextera=CTGTCTCTTATACACATCT" \\
+    -a2 "polyA_Tail=A{100}" -a2 "TruSeq=N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT;min_overlap=25" \\
+    --length 20 \\
+    -j 0 \\
+    --fastqc \\
+    $woumi1 $woumi2
+    """
+
   } else {
 
     //  # Remove nextera adaptor from 3' end in read1 (lower case options)
     //  # Remove truseq adaptor (both in 3') from read2 (upper case options)
-
-    """
-    cutadapt --minimum-length 20 -a "Nextera=CTGTCTCTTATACACATCT" -a "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \
+/*    cutadapt -q 30 --minimum-length 20 -a "Nextera=CTGTCTCTTATACACATCT" -a "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \
     -A "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" -A "Nextera=CTGTCTCTTATACACATCT" -n 2 --pair-filter=any \
     -o $trimmed1 -p $trimmed2 -j 0 \
     ${subset[0]} ${subset[1]} > "${sample}_${run_id}_${lane}_report.txt"
 
-    fastqc --quiet --threads $task.cpus $trimmed1 $trimmed2
+    fastqc --quiet --threads $task.cpus $trimmed1 $trimmed2*/
+
+    """
+    trim-galore \\
+    -q 30 \\
+    --paired \\
+    -a "Nextera=CTGTCTCTTATACACATCT" -a "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
+    -a2 "Nextera=CTGTCTCTTATACACATCT" -a2 "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
+    --length 20 \\
+    -j 0 \\
+    --fastqc \\
+    ${subset[0]} ${subset[1]}
     """
   }
 }
@@ -369,6 +442,8 @@ process star {
 
 */
 
+
+
 process star {
   tag "$sample"
   label 'process_high'
@@ -382,32 +457,21 @@ process star {
   }
 
   input:
-  set val(sample), path(trimmed), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user) from ch_star
+  set val(sample), path(trimmed), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(star) from ch_star
 
   output:
-  set val(sample), path("*.sortedByCoord.out.bam"), path("*Aligned.sortedByCoord.out.bam.bai") into ch_bam_samtools
-
-  set val(sample), path("*.sortedByCoord.out.bam") into ch_bam_stats
+  set val(sample), path("*.sortedByCoord.out.bam"), path("*Aligned.sortedByCoord.out.bam.bai") into ch_bam_samtools,
+                                                                                                    ch_bam_stats
+  set val(sample), path("*.sortedByCoord.out.bam") into ch_markduplicates
   //set val(sample), path("*Aligned.sortedByCoord.out.bam.bai") into bam_index
   set val(sample), path("*unmapped*") optional true
   path("*.out") into star_logs //multiqc
   set val(sample), path("*.tab") into ch_tab
+  path("*.mapped.tsv") into concatenate_mapped
 
 
 
   script:
-  if (genome == "mm38") {
-    gtf = file("${cluster_path}/References/iGenomes/Mus_musculus/Ensembl/GRCm38/Annotation/Genes/genes.gtf", checkIfExists: true)
-    index = file("${cluster_path}/References/iGenomes/Mus_musculus/Ensembl/GRCm38/Annotation/Sequence/STARIndex/", checkIfExists: true)
-    //picardref = "${cluster_path}/scripts/genomic_reference_data/bowtieIndexes/mm10_Bowtie2/mm10.fa"
-    //picardrefflat = "${cluster_path}/scripts/genomic_reference_data/mm10/refFlat.txt"
-  } else if (genome == "hg38") {
-    gtf = file("${cluster_path}/References/iGenomes/Homo_sapiens/NCBI/GRCh38/Annotation/Genes/genes.gtf", checkIfExists: true)
-    index = file("${cluster_path}/References/iGenomes/Homo_sapiens/NCBI/GRCh38/Annotation/Sequence/STARIndex/", checkIfExists: true)
-
-    //picardref = "${cluster_path}/scripts/genomic_reference_data/bowtieIndexes/hg19_Bowtie2/hg19_no_r.fa"
-    //picardrefflat = "${cluster_path}/scripts/genomic_reference_data/hg19/refFlat.txt"
-  }
 
   prefix = params.complete ? "${sample}_${run_id}.STAR.${genome}." : "${sample}_${run_id}.STAR.${genome}.QC."
   unaligned = params.complete ? "--outReadsUnmapped Fastx" : ''
@@ -418,12 +482,13 @@ process star {
   //First make the alingment for each read separated to obtain later the metrics per file
   """
   STAR \
-  --sjdbGTFfile $gtf \
-  --runThreadN ${task.cpus} \
-  --genomeDir $index \
+  --sjdbGTFfile ${star[0]} \
+  --runThreadN $task.cpus \
+  --genomeDir ${star[1]} \
   --readFilesIn $trimmed \
   --readFilesCommand zcat \
   --outWigType bedGraph \
+  ----outSAMunmapped Within \
   --outFileNamePrefix $prefix \
   --outSAMtype BAM SortedByCoordinate $avail_mem \
   --outSAMattributes NH HI AS NM MD \
@@ -431,20 +496,22 @@ process star {
   $unaligned
 
 
-  if [ -f ${prefix}.Unmapped.out.mate1 ]; then
-    mv ${prefix}.Unmapped.out.mate1 ${prefix}.unmapped_R1.fq
-    pigz -p $task.cpus ${prefix}.unmapped_R1.fq
+  if [ -f ${sample}.Unmapped.out.mate1 ]; then
+    mv ${sample}.Unmapped.out.mate1 ${sample}.unmapped_R1.fq
+    pigz -p $task.cpus ${sample}.unmapped_R1.fq
   fi
-  if [ -f ${prefix}.Unmapped.out.mate2 ]; then
-    mv ${prefix}.Unmapped.out.mate2 ${prefix}.unmapped_R2.fq
-    pigz -p $task.cpus ${prefix}.unmapped_R2.fq
+  if [ -f ${sample}.Unmapped.out.mate2 ]; then
+    mv ${prefix}.Unmapped.out.mate2 ${sample}.unmapped_R2.fq
+    pigz -p $task.cpus ${sample}.unmapped_R2.fq
   fi
 
-  samtools index ${prefix}Aligned.sortedByCoord.out.bam
+  samtools index ${sample}Aligned.sortedByCoord.out.bam
 
+  uniquely=\$(grep "Uniquely mapped reads %" ${sample}.Log.final.out | | grep -Eo '[0-9.]+%')
+  multiple=\$(grep "% of reads mapped to multiple loci" ${sample}.Log.final.out | | grep -Eo '[0-9.]+%)
+  many=\$(grep "% of reads mapped to too many loci" ${sample}.Log.final.out | | grep -Eo '[0-9.]+%)
+  printf "%s\t%s\t%s\t%s" "${sample}" "\$uniquely" "\$multiple" "\$many" > ${sample}.mapped.tsv
   """
-
-
   }
 
 
@@ -452,26 +519,26 @@ process star {
 process samtools {
   tag "$sample"
   label 'process_medium'
-  publishDir "${cluster_path}/data/05_QC/${project}/QC_samtools/${sample}", mode: 'copy',
-  saveAs: {filename ->
+  publishDir "${cluster_path}/data/05_QC/${project}/samtools/${sample}", mode: 'copy',
+  /*saveAs: {filename ->
               if (filename.indexOf("flagstat") > 0) "flagstat/$filename"
          else if (filename.indexOf("idxstats") > 0) "idxstats/$filename"
          else if (filename.indexOf(".stats") > 0) "stats/$filename"
-       }
+       }*/
 
   input:
   set val(sample), path(bam), path(index) from ch_bam_samtools
 
   output:
-  path("*.flagstat") into flagstat //multiqc
-  path("*.idxstats") into indxstats //multiqc
+  //path("*.flagstat") into flagstat //multiqc
+  //path("*.idxstats") into indxstats //multiqc
   path("*.stats") into bam_stats //multiqc
 
+/*  samtools flagstat $bam > ${bam}.flagstat
+  samtools idxstats $bam > ${bam}.idxstats */
 
   script:
   """
-  samtools flagstat $bam > ${bam}.flagstat
-  samtools idxstats $bam > ${bam}.idxstats
   samtools stats $bam > ${bam}.stats
   """
 }
@@ -481,7 +548,7 @@ process samtools {
 process rseqc {
   tag "$sample"
   label 'process_medium'
-  publishDir "${cluster_path}/data/05_QC/${project}/QC_rseqc/${sample}", mode: 'copy',
+  publishDir "${cluster_path}/data/05_QC/${project}/rseqc/${sample}", mode: 'copy',
   saveAs: {filename ->
          if (filename.indexOf("bam_stat.txt") > 0)                      "bam_stat/$filename"
     else if (filename.indexOf("read_duplication.DupRate_plot.pdf") > 0) "read_duplication/$filename"
@@ -491,7 +558,7 @@ process rseqc {
   }
 
   input:
-  set val(sample), path(bam) from ch_bam_stats
+  set val(sample), path(bam), path(bai) from ch_bam_stats
 
   output:
   path("${bam.baseName}.bam_stat.txt") into rseqc_bam //multiqc
@@ -506,6 +573,41 @@ process rseqc {
 
 }
 
+
+//Mark duplicates
+
+process picard {
+  tag "${bam.baseName - '.sorted'}"
+  label 'process_medium'
+  publishDir "${cluster_path}/data/05_QC/${project}/markduplicates/", mode: params.publish_dir_mode,
+  saveAs: {filename -> filename.indexOf("_metrics.txt") > 0 ? "metrics/$filename" : "$filename"}
+
+  input:
+  set val(name), file(bam) from ch_markduplicates
+
+  output:
+  file "${bam.baseName}.markDups_metrics.txt" into picard_mrkd_results
+  file "${bam.baseName}.sort.qual_score_dist.txt" into picard_distribution_results
+
+  script:
+  markdup_java_options = (task.memory.toGiga() > 8) ? params.markdup_java_options : "\"-Xms" +  (task.memory.toGiga() / 2 )+"g "+ "-Xmx" + (task.memory.toGiga() - 1)+ "g\""
+
+  """
+  picard ${markdup_java_options} MarkDuplicates \\
+  INPUT=$bam \\
+  OUTPUT=${bam.baseName}.markDups.bam \\
+  METRICS_FILE=${bam.baseName}.markDups_metrics.txt \\
+  REMOVE_DUPLICATES=false \\
+  ASSUME_SORTED=true \\
+  PROGRAM_RECORD_ID='null' \\
+  VALIDATION_STRINGENCY=LENIENT
+
+  picard ${markdup_java_options} QualityScoreDistribution \\
+  INPUT=$bam \\
+  O=${bam.baseName}.sort.qual_score_dist.txt \
+  CHART=${bam.baseName}.sort.qual_score_dist.pdf
+  """
+}
 
 
 /*
@@ -547,29 +649,60 @@ process rseqc {
   process fastqc {
      tag "$sample"
      label 'process_low'
-     publishDir "${cluster_path}/data/05_QC/${project}/FastQC/${sample}", mode: 'copy',
+     publishDir "${cluster_path}/data/05_QC/${project}/fastqc/${sample}", mode: 'copy',
      saveAs: { filename ->
        filename.endsWith(".zip") ? "zips/$filename" : filename
      }
 
      input:
-     set val(sample), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(reads) from ch_fastqc_original
+     set val(sample), path(reads), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(star) from ch_fastqc_original
 
      output:
      path("*_fastqc.{zip,html}") into fastqc_results //multiqc
+     path("*.total.reads.tsv") into total_reads_merge
 
      script:
      """
+     totalReads=\$(\$(echo -e `zcat ${reads[0]} | awk 'NR % 4 == 2' - | wc -l`))
+     q301=\$(q30.py ${reads[0]}) &
+     q302=\$(q30.py ${reads[1]})
+     printf "%s\t%s\t%s\t%s" "${sample}" "\$totalReads" "\$q301" "q302" > "${sample}.total.reads.tsv
      fastqc --quiet --threads $task.cpus $reads
      """
    }
 
 
+  process merge_files {
+    tag "merge"
+    label 'process_low'
+    publishDir "${cluster_path}/data/05_QC/${project}/QCTable/", mode: 'copy',
+    saveAs: { filename ->
+      filename.endsWith(".zip") ? "zips/$filename" : filename
+    }
+
+    input:
+    path("*") from total_reads_merge.collect().ifEmpty([])
+    path("*") from concatenate_mapped.collect().ifEmpty([])
+
+    output:
+    path("*QC.table.tsv")
+
+    script:
+    """
+    printf "%s\t%s\t%s\t%s" "sampleID" "TotalReads" "Q30%1" "Q30%2" "UniquelyMapped%" "MultipleMapped%" "TooManyMapped%" > "${project}.QC.table.tsv
+    cat "*.total.reads.tsv" >> total.reads.tsv
+    sort total.reads.tsv > total.reads.sort.tsv 
+    cat "*.mapped.tsv" >> mapped.tsv
+    sort mapped.tsv > mapped.sort.tsv
+    join -t "\t" -j 1 total.reads.sort.tsv mapped.sort.tsv > QC.table.tsv
+    cat QC.table.tsv >> "${project}.QC.table.tsv
+    """
+  }
 
 
  process multiqc {
 
-   publishDir "${cluster_path}/data/05_QC/${project}/FastQC_raw/${sample}", mode: 'copy',
+   publishDir "${cluster_path}/data/05_QC/${project}/multiqc/", mode: 'copy',
    saveAs: { filename ->
      if (filename.endsWith(".html")) filename
    }
@@ -580,12 +713,13 @@ process rseqc {
    path ('software_versions/*') from software_versions_yaml.collect()
    path workflow_summary from create_workflow_summary(summary)
    path('fastqc/*') from fastqc_results.collect().ifEmpty([])
-   path('cutadapt/*') from trimmed_multiqc.collect().ifEmpty([])
-   path('cutadapt/fastqc/*') from fastqc_trimmed_multiqc.collect().ifEmpty([])
+   path('trimgalore/*') from trimgalore_trim_mqc.collect().ifEmpty([])
+   path('trimgalore/fastqc/*') from trimgalore_fastqc_mqc.collect().ifEmpty([])
    path('star/*') from star_logs.collect().ifEmpty([])
-   path ('samtools/stats/*') from bam_stats.collect().ifEmpty([])
-   path ('samtools/flagstat/*') from flagstat.collect().ifEmpty([])
-   path ('samtools/idxstats/*') from indxstats.collect().ifEmpty([])
+   path('samtools/stats/*') from bam_stats.collect().ifEmpty([])
+   path('picard/*') from picard_results.collect().ifEmpty([])
+   //path ('samtools/flagstat/*') from flagstat.collect().ifEmpty([])
+   //path ('samtools/idxstats/*') from indxstats.collect().ifEmpty([])
    path ('rseqc/bam_stat/*') from rseqc_bam.collect().ifEmpty([])
    path ('rseqc/read_duplication/*') from rseqc_dup.collect().ifEmpty([])
    path "*" from ch_image_docs
