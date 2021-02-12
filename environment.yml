@@ -1,6 +1,6 @@
 # You can use this file to create a conda environment for this pipeline:
 #   conda env create -f environment.yml
-name: mpozuelo-MGI_demux-1.0
+name: mpozuelo-QC_demux-1.0
 channels:
   - conda-forge
   - bioconda
