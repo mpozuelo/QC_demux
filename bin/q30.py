@@ -8,7 +8,7 @@ def qual_stat(qstr):
     q20 = 0
     q30 = 0
     for q in qstr:
-        qual = ord(q) - 33
+        qual = q - 33
         if qual >= 30:
             q30 += 1
             q20 += 1
