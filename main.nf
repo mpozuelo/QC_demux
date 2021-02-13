@@ -666,7 +666,7 @@ process picard {
      totalReads=\$(\$(echo -e `zcat ${reads[0]} | awk 'NR % 4 == 2' - | wc -l`))
      q301=\$(q30.py ${reads[0]}) &
      q302=\$(q30.py ${reads[1]})
-     printf "%s\t%s\t%s\t%s" "${sample}" "\$totalReads" "\$q301" "q302" > "${sample}.total.reads.tsv
+     printf "%s\t%s\t%s\t%s" "${sample}" "\${totalReads}" "\${q301}" "\${q302}" > "${sample}.total.reads.tsv
      fastqc --quiet --threads $task.cpus $reads
      """
    }
