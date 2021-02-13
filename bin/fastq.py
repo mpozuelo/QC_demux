@@ -40,7 +40,7 @@ class Reader:
 
        lines = []
        #read 4 (lines, name, sequence, strand, quality)
-       for i in xrange(0,4):
+       for i in range(0,4):
            line = self.__file.readline().rstrip()
            if len(line) == 0:
                self.__eof = True
