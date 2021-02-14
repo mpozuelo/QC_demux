@@ -327,7 +327,7 @@ process trimming {
     """
     cutadapt -l 10 -j 0 -o $umi ${subset[0]}
 
-    umi_tools extract -I ${subset[0]} -S $woumi1 --read2-in=${subset[1]} --read2-out=$woumi2 --bc-pattern=^NNNNNNNNNN
+    umi_tools extract -I ${subset[0]} -S $woumi1 --read2-in=${subset[1]} --read2-out=$woumi2 --bc-pattern=NNNNNNNNNN
 
     trim-galore \\
     -q 30 \\
@@ -664,7 +664,7 @@ process picard {
      script:
      """
      totalReads=\$(echo \$(echo -e `zcat ${reads[0]} | awk 'NR % 4 == 2' - | wc -l`))
-     q301=\$(echo \$(q30.py ${reads[0]})) 
+     q301=\$(echo \$(q30.py ${reads[0]}))
      q302=\$(echo \$(q30.py ${reads[1]}))
      printf "%s\t%s\t%s\t%s" "${sample}" "\$totalReads" "\$q301" "\$q302" > "${sample}.total.reads.tsv"
      fastqc --quiet --threads $task.cpus $reads
