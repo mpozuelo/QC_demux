@@ -333,7 +333,7 @@ process trimming {
     -q 30 \\
     --paired \\
     -a "polyA_Tail=T{100}" -a "Nextera=CTGTCTCTTATACACATCT" \\
-    -a2 "polyA_Tail=A{100}" -a2 "TruSeq=N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT;min_overlap=25" \\
+    -a2 "polyA_Tail=A{100}" -a2 "TruSeq=N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
     --length 20 \\
     -j $task.cpus \\
     --fastqc \\
