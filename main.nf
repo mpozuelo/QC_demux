@@ -335,7 +335,7 @@ process trimming {
     -a "polyA_Tail=T{100}" -a "Nextera=CTGTCTCTTATACACATCT" \\
     -a2 "polyA_Tail=A{100}" -a2 "TruSeq=N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT;min_overlap=25" \\
     --length 20 \\
-    -j 0 \\
+    -j $task.cpus \\
     --fastqc \\
     $woumi1 $woumi2
     """
@@ -358,7 +358,7 @@ process trimming {
     -a "Nextera=CTGTCTCTTATACACATCT" -a "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
     -a2 "Nextera=CTGTCTCTTATACACATCT" -a2 "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
     --length 20 \\
-    -j 0 \\
+    -j $task.cpus \\
     --fastqc \\
     ${subset[0]} ${subset[1]}
     """
