@@ -332,8 +332,8 @@ process trimming {
     trim_galore \\
     -q 30 \\
     --paired \\
-    -a "polyA_Tail=T{100}" -a "Nextera=CTGTCTCTTATACACATCT" \\
-    -a2 "polyA_Tail=A{100}" -a2 "TruSeq=N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
+    -a "T{100}" -a "CTGTCTCTTATACACATCT" \\
+    -a2 "A{100}" -a2 "N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
     --length 20 \\
     -j $task.cpus \\
     --fastqc \\
@@ -355,8 +355,8 @@ process trimming {
     trim_galore \\
     -q 30 \\
     --paired \\
-    -a "Nextera=CTGTCTCTTATACACATCT" -a "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
-    -a2 "Nextera=CTGTCTCTTATACACATCT" -a2 "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
+    -a "CTGTCTCTTATACACATCT" -a "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
+    -a2 "CTGTCTCTTATACACATCT" -a2 "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
     --length 20 \\
     -j $task.cpus \\
     --fastqc \\
