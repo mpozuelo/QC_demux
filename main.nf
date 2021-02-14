@@ -301,7 +301,7 @@ process trimming {
   set val(sample), path("*R*.fq.gz"), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(star) into ch_star
   file "*trimming_report.txt" into trimgalore_trim_mqc
   file "*_fastqc.{zip,html}" into trimgalore_fastqc_mqc
-  file "*UMI_fq.gz"
+  file "*UMI.fq.gz" optional true
 
   script:
   //trimmed1 = "${sample}_${run_id}_${lane}_QC_R1.cutadapt.fq.gz"
