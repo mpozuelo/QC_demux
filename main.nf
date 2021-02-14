@@ -332,8 +332,8 @@ process trimming {
     trim_galore \\
     -q 30 \\
     --paired \\
-    -a " T{100} -a CTGTCTCTTATACACATCT" \\
-    -a2 " A{100} -a N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
+    -a "T{100} -a CTGTCTCTTATACACATCT" \\
+    -a2 "A{100} -a N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
     --length 20 \\
     -j $task.cpus \\
     --fastqc \\
@@ -355,8 +355,8 @@ process trimming {
     trim_galore \\
     -q 30 \\
     --paired \\
-    -a " CTGTCTCTTATACACATCT -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
-    -a2 " CTGTCTCTTATACACATCT -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
+    -a "CTGTCTCTTATACACATCT -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
+    -a2 "CTGTCTCTTATACACATCT -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
     --length 20 \\
     -j $task.cpus \\
     --fastqc \\
