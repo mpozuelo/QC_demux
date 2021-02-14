@@ -481,18 +481,18 @@ process star {
 
   //First make the alingment for each read separated to obtain later the metrics per file
   """
-  STAR \
-  --sjdbGTFfile ${star[0]} \
-  --runThreadN $task.cpus \
-  --genomeDir ${star[1]} \
-  --readFilesIn $trimmed \
-  --readFilesCommand zcat \
-  --outWigType bedGraph \
-  ----outSAMunmapped Within \
-  --outFileNamePrefix $prefix \
-  --outSAMtype BAM SortedByCoordinate $avail_mem \
-  --outSAMattributes NH HI AS NM MD \
-  --outSAMattrRGline ID:${sample}.R1.${protocol} SM:${sample} LB:${protocol} PL:${platform} CN:${source} DT:${date}T00:00:00-0400 \
+  STAR \\
+  --sjdbGTFfile ${star[0]} \\
+  --runThreadN $task.cpus \\
+  --genomeDir ${star[1]} \\
+  --readFilesIn $trimmed \\
+  --readFilesCommand zcat \\
+  --outWigType bedGraph \\
+  --outSAMunmapped Within \\
+  --outFileNamePrefix $prefix \\
+  --outSAMtype BAM SortedByCoordinate $avail_mem \\
+  --outSAMattributes NH HI AS NM MD \\
+  --outSAMattrRGline ID:${sample}.R1.${protocol} SM:${sample} LB:${protocol} PL:${platform} CN:${source} DT:${date}T00:00:00-0400 \\
   $unaligned
 
 
