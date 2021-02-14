@@ -144,7 +144,7 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
      echo $workflow.manifest.version &> v_ngi_QC.txt
      echo $workflow.nextflow.version &> v_nextflow.txt
      fastqc --version &> v_fastqc.txt
-     cutadapt --version &> v_cutadapt.txt
+     trim_galore --version &> v_trim_galore.txt
      STAR --version &> v_star.txt
      samtools --version &> v_samtools.txt
      multiqc --version &> v_multiqc.txt
@@ -332,8 +332,8 @@ process trimming {
     trim_galore \\
     -q 30 \\
     --paired \\
-    -a "-a T{100} -a CTGTCTCTTATACACATCT" \\
-    -a2 "-a A{100} -a N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
+    -a " T{100} -a CTGTCTCTTATACACATCT" \\
+    -a2 " A{100} -a N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
     --length 20 \\
     -j $task.cpus \\
     --fastqc \\
@@ -355,8 +355,8 @@ process trimming {
     trim_galore \\
     -q 30 \\
     --paired \\
-    -a "-a CTGTCTCTTATACACATCT -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
-    -a2 "-a CTGTCTCTTATACACATCT -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
+    -a " CTGTCTCTTATACACATCT -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
+    -a2 " CTGTCTCTTATACACATCT -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
     --length 20 \\
     -j $task.cpus \\
     --fastqc \\
