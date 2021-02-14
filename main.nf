@@ -329,7 +329,7 @@ process trimming {
 
     umi_tools extract -I ${subset[0]} -S $woumi1 --read2-in=${subset[1]} --read2-out=$woumi2 --bc-pattern=NNNNNNNNNN
 
-    trim-galore \\
+    trim_galore \\
     -q 30 \\
     --paired \\
     -a "polyA_Tail=T{100}" -a "Nextera=CTGTCTCTTATACACATCT" \\
@@ -352,7 +352,7 @@ process trimming {
     fastqc --quiet --threads $task.cpus $trimmed1 $trimmed2*/
 
     """
-    trim-galore \\
+    trim_galore \\
     -q 30 \\
     --paired \\
     -a "Nextera=CTGTCTCTTATACACATCT" -a "TruSeq=AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
