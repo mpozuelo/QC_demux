@@ -509,8 +509,8 @@ process star {
   samtools index ${sample}Aligned.sortedByCoord.out.bam
 
   uniquely=\$(grep "Uniquely mapped reads %" ${sample}Log.final.out | grep -Eo '[0-9.]+%')
-  multiple=\$(grep "% of reads mapped to multiple loci" ${sample}Log.final.out | grep -Eo '[0-9.]+%)
-  many=\$(grep "% of reads mapped to too many loci" ${sample}Log.final.out | grep -Eo '[0-9.]+%)
+  multiple=\$(grep "% of reads mapped to multiple loci" ${sample}Log.final.out | grep -Eo '[0-9.]+%')
+  many=\$(grep "% of reads mapped to too many loci" ${sample}Log.final.out | grep -Eo '[0-9.]+%')
   printf "%s\t%s\t%s\t%s" "${sample}" "\$uniquely" "\$multiple" "\$many" > ${sample}.mapped.tsv
   """
   }
