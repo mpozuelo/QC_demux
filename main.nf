@@ -695,7 +695,7 @@ process picard {
     cat *.mapped.tsv >> mapped.tsv
     sort mapped.tsv > mapped.sort.tsv
     join total.reads.sort.tsv mapped.sort.tsv > QC.table.tsv
-    cat QC.table.tsv >> "${project}.QC.table.tsv
+    cat QC.table.tsv >> "${project}.QC.table.tsv"
     """
   }
 
