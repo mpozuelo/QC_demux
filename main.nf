@@ -502,7 +502,7 @@ process star {
     pigz -p $task.cpus ${sample}.unmapped_R1.fq
   fi
   if [ -f ${sample}.Unmapped.out.mate2 ]; then
-    mv ${prefix}.Unmapped.out.mate2 ${sample}.unmapped_R2.fq
+    mv ${sample}.Unmapped.out.mate2 ${sample}.unmapped_R2.fq
     pigz -p $task.cpus ${sample}.unmapped_R2.fq
   fi
 
