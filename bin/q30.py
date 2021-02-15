@@ -30,7 +30,7 @@ def stat(filename):
         q20_count += q20
         q30_count += q30
 
-    print(100 * float(q30_count)/float(total_count))
+    print("%s%" % str(round((100 * float(q30_count)/float(total_count)), 2)))
 
 def main():
     if len(sys.argv) < 2:
