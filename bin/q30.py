@@ -8,7 +8,7 @@ def qual_stat(qstr):
     q20 = 0
     q30 = 0
     for q in qstr:
-        qual = q) - 33
+        qual = q - 33
         if qual >= 30:
             q30 += 1
             q20 += 1
@@ -30,7 +30,7 @@ def stat(filename):
         q20_count += q20
         q30_count += q30
 
-    print(100 * float(q30_count)/float(total_count))
+    print(round(100 * float(q30_count)/float(total_count)), 2)
 
 def main():
     if len(sys.argv) < 2:
@@ -39,7 +39,4 @@ def main():
     stat(sys.argv[1])
 
 if __name__ == "__main__":
-    time1 = time.time()
     main()
-    time2 = time.time()
-    print('Time used: ' + str(time2-time1))
