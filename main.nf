@@ -511,7 +511,7 @@ process star {
   uniquely=\$(grep "Uniquely mapped reads %" ${sample}Log.final.out | grep -Eo '[0-9.]+%')
   multiple=\$(grep "% of reads mapped to multiple loci" ${sample}Log.final.out | grep -Eo '[0-9.]+%')
   many=\$(grep "% of reads mapped to too many loci" ${sample}Log.final.out | grep -Eo '[0-9.]+%')
-  printf "%s\t%s\t%s\t%s" "${sample}" "\$uniquely" "\$multiple" "\$many" > ${sample}.mapped.tsv
+  printf "%s\t%s\t%s\t%s\n" "${sample}" "\$uniquely" "\$multiple" "\$many" > ${sample}.mapped.tsv
   """
   }
 
@@ -669,7 +669,7 @@ process picard {
      totalReads=\$(echo \$(echo -e `zcat ${reads[0]} | awk 'NR % 4 == 2' - | wc -l`))
      q301=\$(echo \$(q30.py ${reads[0]}))
      q302=\$(echo \$(q30.py ${reads[1]}))
-     printf "%s\t%s\t%s\t%s" "${sample}" "\$totalReads" "\$q301" "\$q302" > "${sample}.total.reads.tsv"
+     printf "%s\t%s\t%s\t%s\n" "${sample}" "\$totalReads" "\$q301" "\$q302" > "${sample}.total.reads.tsv"
      fastqc --quiet --threads $task.cpus $reads
      """
    }
@@ -678,10 +678,7 @@ process picard {
   process merge_files {
     tag "merge"
     label 'process_low'
-    publishDir "${cluster_path}/data/05_QC/${project}/QCTable/", mode: 'copy',
-    saveAs: { filename ->
-      filename.endsWith(".zip") ? "zips/$filename" : filename
-    }
+    publishDir "${cluster_path}/data/05_QC/${project}/QCTable/", mode: 'copy'
 
     input:
     path("*") from total_reads_merge.collect().ifEmpty([])
@@ -692,12 +689,12 @@ process picard {
 
     script:
     """
-    printf "%s\t%s\t%s\t%s" "sampleID" "TotalReads" "Q30%1" "Q30%2" "UniquelyMapped%" "MultipleMapped%" "TooManyMapped%" > "${project}.QC.table.tsv
-    cat "*.total.reads.tsv" >> total.reads.tsv
+    printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\n" "sampleID" "TotalReads" "Q30%1" "Q30%2" "UniquelyMapped%" "MultipleMapped%" "TooManyMapped%" > "${project}.QC.table.tsv"
+    cat *.total.reads.tsv >> total.reads.tsv
     sort total.reads.tsv > total.reads.sort.tsv
-    cat "*.mapped.tsv" >> mapped.tsv
+    cat *.mapped.tsv >> mapped.tsv
     sort mapped.tsv > mapped.sort.tsv
-    join -t "\t" -j 1 total.reads.sort.tsv mapped.sort.tsv > QC.table.tsv
+    join total.reads.sort.tsv mapped.sort.tsv > QC.table.tsv
     cat QC.table.tsv >> "${project}.QC.table.tsv
     """
   }
