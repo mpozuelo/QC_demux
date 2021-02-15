@@ -473,7 +473,7 @@ process star {
 
   script:
 
-  prefix = params.complete ? "${sample}_${run_id}.STAR.${genome}." : "${sample}_${run_id}.STAR.${genome}.QC."
+  //prefix = params.complete ? "${sample}_${run_id}.STAR.${genome}." : "${sample}_${run_id}.STAR.${genome}.QC."
   unaligned = params.complete ? "--outReadsUnmapped Fastx" : ''
 
   def star_mem = task.memory ?: params.star_memory ?: false
@@ -488,7 +488,7 @@ process star {
   --runThreadN $task.cpus \\
   --outWigType bedGraph \\
   --readFilesCommand zcat \\
-  --outFileNamePrefix $prefix \\
+  --outFileNamePrefix $sample \\
   --outSAMunmapped Within \\
   --runDirPerm All_RWX $unaligned \\
   --outSAMtype BAM SortedByCoordinate $avail_mem \\
