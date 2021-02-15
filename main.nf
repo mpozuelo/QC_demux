@@ -662,13 +662,14 @@ process picard {
      path("*_fastqc.{zip,html}") into fastqc_results //multiqc
      path("*.total.reads.tsv") into total_reads_merge
 
+//     sed 's/Time used: [0-9.]*//g' "${sample}.total.reads.tmp.tsv" > "${sample}.total.reads.tsv"
+
      script:
      """
      totalReads=\$(echo \$(echo -e `zcat ${reads[0]} | awk 'NR % 4 == 2' - | wc -l`))
      q301=\$(echo \$(q30.py ${reads[0]}))
      q302=\$(echo \$(q30.py ${reads[1]}))
-     printf "%s\t%s\t%s\t%s" "${sample}" "\$totalReads" "\$q301" "\$q302" > "${sample}.total.reads.tmp.tsv"
-     sed 's/Time used: [0-9.]*//g' "${sample}.total.reads.tmp.tsv" > "${sample}.total.reads.tsv"
+     printf "%s\t%s\t%s\t%s" "${sample}" "\$totalReads" "\$q301" "\$q302" > "${sample}.total.reads.tsv"
      fastqc --quiet --threads $task.cpus $reads
      """
    }
