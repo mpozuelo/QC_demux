@@ -290,7 +290,7 @@ process trimming {
     else if (filename.endsWith(".zip")) "fastqc/zips/$filename"
     else if (filename.indexOf("_fastqc") > 0) filename
     else if (filename.endsWith("UMI.fq.gz")) "UMIs/$filename"
-    else null
+    else filename
   }
 
 
@@ -298,7 +298,7 @@ process trimming {
   set val(sample), path(subset), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(star) from ch_trimming
 
   output:
-  set val(sample), path("*R*.fq.gz"), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(star) into ch_star
+  set val(sample), path("*val_{1,2}.fq.gz"), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(star) into ch_star
   file "*trimming_report.txt" into trimgalore_trim_mqc
   file "*_fastqc.{zip,html}" into trimgalore_fastqc_mqc
   file "*UMI.fq.gz" optional true
@@ -482,18 +482,19 @@ process star {
   //First make the alingment for each read separated to obtain later the metrics per file
   """
   STAR \\
-  --sjdbGTFfile ${star[0]} \\
-  --runThreadN $task.cpus \\
   --genomeDir ${star[1]} \\
+  --sjdbGTFfile ${star[0]} \\
   --readFilesIn $trimmed \\
+  --runThreadN $task.cpus \\
+  --outWigType bedgraph \\
   --readFilesCommand zcat \\
-  --outWigType bedGraph \\
-  --outSAMunmapped Within \\
   --outFileNamePrefix $prefix \\
+  --outSAMunmapped Within \\
+  --runDirPerm All_RWX $unaligned \\
   --outSAMtype BAM SortedByCoordinate $avail_mem \\
   --outSAMattributes NH HI AS NM MD \\
-  --outSAMattrRGline ID:${sample}.R1.${protocol} SM:${sample} LB:${protocol} PL:${platform} CN:${source} DT:${date}T00:00:00-0400 \\
-  $unaligned
+  --outSAMattrRGline ID:${sample}.R1.${protocol} SM:${sample} LB:${protocol} PL:${platform} CN:${source} DT:${date}T00:00:00-0400
+
 
 
   if [ -f ${sample}.Unmapped.out.mate1 ]; then
