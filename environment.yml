@@ -10,6 +10,12 @@ dependencies:
   ##conda forge packages
   - conda-forge::python=3.6.10
   - conda-forge::pigz=2.3.4
+  - r-base=3.6.1
+  - conda-forge::r-data.table=1.12.4
+  - conda-forge::r-gplots=3.0.1.1
+  - conda-forge::r-markdown=1.1
+  - conda-forge::r-ggplot2=3.3.2
+  - conda-forge::r-rmarkdown=2.3
 
   ##bioconda packages
   - bioconda::fastqc=0.11.9
