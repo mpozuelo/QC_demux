@@ -175,7 +175,7 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
  */
 
  process modify_samplesheet {
-    publishDir "${params.outdir}/samplesheet/", mode: params.publish_dir_mode
+    publishDir "${cluster_path}/data/05_QC/${project}/subset_fastq/samplesheet/", mode: params.publish_dir_mode
 
     input:
     path samplesheet from ch_input
@@ -662,7 +662,6 @@ process picard {
      output:
      path("*_fastqc.{zip,html}") into fastqc_results //multiqc
      path("*.total.reads.tsv") into total_reads_merge
-
 //     sed 's/Time used: [0-9.]*//g' "${sample}.total.reads.tmp.tsv" > "${sample}.total.reads.tsv"
 
      script:
@@ -718,8 +717,8 @@ process picard {
    path('trimgalore/fastqc/*') from trimgalore_fastqc_mqc.collect().ifEmpty([])
    path('star/*') from star_logs.collect().ifEmpty([])
    path('samtools/stats/*') from bam_stats.collect().ifEmpty([])
-   path('picard_mrkd/*') from picard_mrkd_results.collect().ifEmpty([])
-   path('picard_dist_score/*') from picard_distribution_results.collect().ifEmpty([])
+   path('picard/markdups/*') from picard_mrkd_results.collect().ifEmpty([])
+   path('picard/quality_score_distribution/*') from picard_distribution_results.collect().ifEmpty([])
    //path ('samtools/flagstat/*') from flagstat.collect().ifEmpty([])
    //path ('samtools/idxstats/*') from indxstats.collect().ifEmpty([])
    path ('rseqc/bam_stat/*') from rseqc_bam.collect().ifEmpty([])
