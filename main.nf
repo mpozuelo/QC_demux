@@ -250,8 +250,8 @@ if (!params.complete) {
     set val(sample), path("*QC*.fq.gz"), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user), path(star) into ch_trimming
 
     script:
-    read1 = "${sample}_${run_id}_${lane}_QC_R1.fq"
-    read2 = "${sample}_${run_id}_${lane}_QC_R2.fq"
+    read1 = "${sample}_QC_R1.fq"
+    read2 = "${sample}_QC_R2.fq"
 
     //First count the number of total reads in one of the input files (R1 or R2, in this case R1) and get the 10%
     //Then get the subset of samples with seqtk
@@ -290,6 +290,7 @@ process trimming {
     else if (filename.endsWith(".zip")) "fastqc/zips/$filename"
     else if (filename.indexOf("_fastqc") > 0) filename
     else if (filename.endsWith("UMI.fq.gz")) "UMIs/$filename"
+    else if (filename.endsWith("woUMI_R{1,2}.fq.gz")) "fastqWoUMIs/$filename"
     else filename
   }
 
