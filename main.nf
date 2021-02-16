@@ -53,12 +53,12 @@ if (params.help) {
 
  // Has the run name been specified by the user?
  //  this has the bonus effect of catching both -name and --name
- custom_runName = params.name
+
  if (!(workflow.runName ==~ /[a-z]+_[a-z]+/)) {
    custom_runName = workflow.runName
  }
  else{
-   workflow.runName = params.user + " " + params.timestamp
+   workflow.runName = params.project + " " + params.timestamp
    custom_runName = workflow.runName
  }
 
@@ -306,9 +306,9 @@ process trimming {
   script:
   //trimmed1 = "${sample}_${run_id}_${lane}_QC_R1.cutadapt.fq.gz"
   //trimmed2 = "${sample}_${run_id}_${lane}_QC_R2.cutadapt.fq.gz"
-  umi = "${sample}_${run_id}_${lane}_UMI.fq.gz"
-  woumi1 = "${sample}_${run_id}_${lane}_woUMI_R1.fq.gz"
-  woumi2 = "${sample}_${run_id}_${lane}_woUMI_R2.fq.gz"
+  umi = "${sample}_UMI.fq.gz"
+  woumi1 = "${sample}_woUMI_R1.fq.gz"
+  woumi2 = "${sample}_woUMI_R2.fq.gz"
 
   if (protocol == 'RNAseq_3_S' | protocol == 'RNAseq_3_ULI') {
 
@@ -731,8 +731,8 @@ process picard {
    //path "multiqc_plots"
 
    script:
-   rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
-   rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
+   rtitle = custom_runName ? "--title \"$project\"" : ''
+   rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : "$project"
    """
    multiqc . -f $rtitle $rfilename --config $multiqc_config
    """
