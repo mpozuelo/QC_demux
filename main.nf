@@ -578,6 +578,7 @@ process picard {
   process fastqc {
      tag "$sample"
      label 'process_low'
+     cache true
      publishDir "${cluster_path}/data/05_QC/${project}/fastqc/${sample}", mode: 'copy',
      saveAs: { filename ->
        filename.endsWith(".zip") ? "zips/$filename" : filename
