@@ -144,9 +144,12 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
      echo $workflow.manifest.version &> v_ngi_QC.txt
      echo $workflow.nextflow.version &> v_nextflow.txt
      fastqc --version &> v_fastqc.txt
+     cutadapt --version &> v_cutadapt.txt
      trim_galore --version &> v_trim_galore.txt
      STAR --version &> v_star.txt
      samtools --version &> v_samtools.txt
+     read_duplication.py --version &> v_rseqc.txt
+     picard MarkDuplicates --version &> v_markduplicates.txt  || true
      multiqc --version &> v_multiqc.txt
      scrape_software_versions.py &> software_versions_mqc.yaml
      """
@@ -366,82 +369,6 @@ process trimming {
   }
 }
 
-
-
-/*
- * STEP 3 - STAR alignment
- */
-
-/* SEPARATED BY READ
-
-process star {
-  tag "$sample"
-  label 'process_high'
-  publishDir "${cluster_path}/data/05_QC/${project}/STAR", mode: 'copy',
-  saveAs: { filename ->
-    filename.endsWith(".log") ? "logs/$filename" : filename
-  }
-
-  input:
-  set val(sample), path(trimmed), val(run_id), val(lane), val(date), val(protocol), val(platform), val(source), val(genome), val(user) from ch_star
-
-  output:
-  set val(sample), path("*.sortedByCoord.out.bam"), val(run_id), val(lane), val(protocol), val(platform), val(date), val(user) into ch_bam_qc
-  set val(sample), path("*Unmapped*") optional true
-  set val(sample), path("*Log.out") into ch_log_out
-  set val(sample), path("*.tab") into ch_tab
-  set val(sample), path("*Log.final.out") into ch_log_final
-  set val(sample), path("*Log.progress.out") into ch_log_progress
-
-
-  script:
-  if (genome == "mm10") {
-    starrefgenome = "${cluster_path}/scripts/genomic_reference_data/STAR/STARgenomes/GENCODE/GRCm38_GencodeM21"
-    //picardref = "${cluster_path}/scripts/genomic_reference_data/bowtieIndexes/mm10_Bowtie2/mm10.fa"
-    //picardrefflat = "${cluster_path}/scripts/genomic_reference_data/mm10/refFlat.txt"
-  } else if (genome == "hg19") {
-    starrefgenome = "${cluster_path}/scripts/genomic_reference_data/STAR/STARgenomes/GENCODE/hg19.v19"
-    //picardref = "${cluster_path}/scripts/genomic_reference_data/bowtieIndexes/hg19_Bowtie2/hg19_no_r.fa"
-    //picardrefflat = "${cluster_path}/scripts/genomic_reference_data/hg19/refFlat.txt"
-  }
-
-  read1 = "${reads[0]}"
-  read2 = "${reads[1]}"
-  bam1 = params.complete ? "${sample}_${run_id}_R1.STAR.${genome}." : "${sample}_${run_id}_R1.STAR.${genome}.QC."
-  bam2 = params.complete ? "${sample}_${run_id}_R2.STAR.${genome}." : "${sample}_${run_id}_R2.STAR.${genome}.QC."
-  unaligned = params.complete ? "--outReadsUnmapped Fastx" : ''
-
-
-  //First make the alingment for each read separated to obtain later the metrics per file
-  """
-  STAR --runThreadN 4 \
-  --genomeDir $starrefgenome \
-  --readFilesIn $trimmed1 \
-  --readFilesCommand zcat \
-  --outFileNamePrefix $bam1 \
-  --outSAMtype BAM SortedByCoordinate \
-  --outSAMunmapped Within \
-  --limitBAMsortRAM 20000000000 \
-  --outSAMattributes NH HI AS NM MD \
-  --outSAMattrRGline ID:${sample}.R1.${protocol} SM:${sample} LB:${protocol} PL:${platform} CN:${source} DT:${date}T00:00:00-0400 \
-  $unaligned
-
-  STAR --runThreadN 4 \
-  --genomeDir $starrefgenome \
-  --readFilesIn $trimmed2 \
-  --readFilesCommand zcat \
-  --outFileNamePrefix $bam2 \
-  --outSAMtype BAM SortedByCoordinate \
-  --outSAMunmapped Within \
-  --limitBAMsortRAM 20000000000 \
-  --outSAMattributes NH HI AS NM MD \
-  --outSAMattrRGline ID:${sample}.R2.${protocol} SM:${sample} LB:${protocol} PL:${platform} CN:${source} DT:${date}T00:00:00-0400 \
-  $unaligned
-  """
-  }
-}
-
-*/
 
 
 

@@ -4,7 +4,7 @@ from collections import OrderedDict
 import re
 
 regexes = {
-    'nf-core/viralrecon': ['v_pipeline.txt', r"(\S+)"],
+    'mpozuelo/QC_demux': ['v_pipeline.txt', r"(\S+)"],
     'Nextflow': ['v_nextflow.txt', r"(\S+)"],
     'parallel-fastq-dump': ['v_parallel_fastq_dump.txt', r"parallel-fastq-dump\s:\s(\S+)"],
     'FastQC': ['v_fastqc.txt', r"FastQC\sv(\S+)"],
@@ -35,7 +35,7 @@ regexes = {
     'MultiQC': ['v_multiqc.txt', r"multiqc,\sversion\s(\S+)"]
 }
 results = OrderedDict()
-results['nf-core/viralrecon'] = '<span style="color:#999999;\">N/A</span>'
+results['mpozuelo/QC_demux'] = '<span style="color:#999999;\">N/A</span>'
 results['Nextflow'] = '<span style="color:#999999;\">N/A</span>'
 results['parallel-fastq-dump'] = '<span style="color:#999999;\">N/A</span>'
 results['FastQC'] = '<span style="color:#999999;\">N/A</span>'
@@ -84,8 +84,8 @@ for k in list(results):
 # Dump to YAML
 print ('''
 id: 'software_versions'
-section_name: 'nf-core/viralrecon Software Versions'
-section_href: 'https://github.com/nf-core/viralrecon'
+section_name: 'mpozuelo/QC_demux Software Versions'
+section_href: 'https://github.com/mpozuelo/QC_demux'
 plot_type: 'html'
 description: 'are collected at run time from the software output.'
 data: |

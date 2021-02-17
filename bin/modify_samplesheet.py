@@ -25,6 +25,7 @@ def add_bed_file(FileIn,FileOut):
     # Open output file
     fo = open(FileOut, 'w')
 
+
     basefolder = '/datos/ngs/dato-activo/References/iGenomes/'
     # Dictionary for bed files
     star_gtf = {'hg38': basefolder + 'Homo_sapiens/NCBI/GRCh38/Annotation/Genes/genes.gtf', 'mm38': basefolder + 'Mus_musculus/Ensembl/GRCm38/Annotation/Genes/genes.gtf'}
