@@ -327,6 +327,8 @@ process trimming {
     ${subset[0]} ${subset[1]} > "${sample}_${run_id}_${lane}_report.txt"
 
     fastqc --quiet --threads $task.cpus $trimmed1 $trimmed2
+    //    -a " T{100} -a CTGTCTCTTATACACATCT" \\
+        -a2 " A{100} -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
     */
     """
     cutadapt -l 10 -j 0 -o $umi ${subset[0]}
@@ -336,8 +338,6 @@ process trimming {
     trim_galore \\
     -q 30 \\
     --paired \\
-    -a " T{100} -a CTGTCTCTTATACACATCT" \\
-    -a2 " A{100} -a N{18}AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
     --length 20 \\
     -j $task.cpus \\
     --fastqc \\
@@ -353,14 +353,15 @@ process trimming {
     -o $trimmed1 -p $trimmed2 -j 0 \
     ${subset[0]} ${subset[1]} > "${sample}_${run_id}_${lane}_report.txt"
 
-    fastqc --quiet --threads $task.cpus $trimmed1 $trimmed2*/
+    fastqc --quiet --threads $task.cpus $trimmed1 $trimmed2
+    -a " CTGTCTCTTATACACATCT -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
+    -a2 " CTGTCTCTTATACACATCT -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
+    */
 
     """
     trim_galore \\
     -q 30 \\
     --paired \\
-    -a " CTGTCTCTTATACACATCT -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
-    -a2 " CTGTCTCTTATACACATCT -a AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT" \\
     --length 20 \\
     -j $task.cpus \\
     --fastqc \\
