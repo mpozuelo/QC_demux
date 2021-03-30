@@ -171,10 +171,11 @@ ${summary.collect { k,v -> "            <dt>$k</dt><dd><samp>${v ?: '<span style
  7- Sequencing date
  8- Protocol
  9- Platform
- 10- Sample Source (place where the samples come from)
- 11- Genome
- 12- User
- 13- Coverage
+ 10- Machine
+ 11- Sample Source (place where the samples come from)
+ 12- Genome
+ 13- User
+ 14- Coverage
  */
 
  process modify_samplesheet {
