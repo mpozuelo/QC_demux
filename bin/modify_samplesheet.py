@@ -37,8 +37,8 @@ def add_bed_file(FileIn,FileOut):
     # Compute percentages
     cov['star_gtf'] = cov['genome'].map(star_gtf)
     cov['star_index'] = cov['genome'].map(star_index)
-    cov['fastq1'] = "/datos/ngs/dato-activo/data/04_pfastq/" + cov['platform'] + '/' + cov['machine'] + '/' + cov['run'] + '/' + cov['lane'] + '/' + cov['user'] + '/demux_fastq/' + str(cov['sampleID']) + '_S' + str(cov['ID']) + '_' + '_R1_001.fastq.gz'
-    cov['fastq2'] = "/datos/ngs/dato-activo/data/04_pfastq/" + cov['platform'] + '/' + cov['machine'] + '/' + cov['run'] + '/' + cov['lane'] + '/' + cov['user'] + '/demux_fastq/' + str(cov['sampleID']) + '_S' + str(cov['ID']) + '_' + '_R2_001.fastq.gz'
+    cov['fastq1'] = '/datos/ngs/dato-activo/data/04_pfastq/' + str(cov['platform']) + '/' + str(cov['machine']) + '/' + str(cov['run']) + '/' + str(cov['lane']) + '/' + str(cov['user']) + '/demux_fastq/' + str(cov['sampleID']) + '_S' + str(cov['ID']) + '_' + '_R1_001.fastq.gz'
+    cov['fastq2'] = '/datos/ngs/dato-activo/data/04_pfastq/' + str(cov['platform']) + '/' + str(cov['machine']) + '/' + str(cov['run']) + '/' + str(cov['lane']) + '/' + str(cov['user']) + '/demux_fastq/' + str(cov['sampleID']) + '_S' + str(cov['ID']) + '_' + '_R2_001.fastq.gz'
 
 
     cov.to_csv(fo, index = False)
