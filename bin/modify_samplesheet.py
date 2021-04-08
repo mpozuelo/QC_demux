@@ -20,7 +20,7 @@ def add_bed_file(FileIn,FileOut):
     fi = open(FileIn, 'r')
 
     # Load mosdepth thresholds.bed.gz into a pandas dataframe
-    cov = pd.read_csv(fi, delimiter=',', index_col=False, low_memory=False, , dtype={'sampleID': 'str'})
+    cov = pd.read_csv(fi, delimiter=',', index_col=False, low_memory=False, dtype={'sampleID': 'str'})
 
     # Open output file
     fo = open(FileOut, 'w')
