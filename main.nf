@@ -79,7 +79,7 @@ project = params.project
 
 // Stage multiqc config files
 ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
-ch_image_docs            = file("$baseDir/assets/figures/Logo_IdisNA_CIMA.png", checkIfExists: true)
+ch_image_docs            = file("$baseDir/assets/figures/logo_cima.png", checkIfExists: true)
 
 
 
