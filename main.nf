@@ -604,7 +604,7 @@ process picard {
      """
    }
 
-if !params.skip_merge {
+if (!params.skip_merge) {
   process merge_files {
     tag "merge"
     label 'process_low'
