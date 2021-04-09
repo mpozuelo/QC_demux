@@ -604,7 +604,7 @@ process picard {
      """
    }
 
-
+if !params.skip_merge {
   process merge_files {
     tag "merge"
     label 'process_low'
@@ -628,6 +628,7 @@ process picard {
     cat QC.table.tsv >> "${project}.QC.table.tsv"
     """
   }
+}
 
 
  process multiqc {
